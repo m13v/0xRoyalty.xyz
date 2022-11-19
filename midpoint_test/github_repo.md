@@ -1,0 +1,4 @@
+https://goerli.etherscan.io/tx/0x17cf75ab9003a60000d759690c2fe929f57e34edbe894560caafe71cc129414a
+
+deployed contract to Goerli test network
+0xdd72691c0e08119d521e99887c1dc46c3f442ba8
