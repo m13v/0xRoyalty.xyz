@@ -1,3 +1,4 @@
-exports.getBalance = require("./simple-coin/get-balance")
+exports.getAll = require("./tracker/get-all")
+exports.addProject = require("./tracker/add-project")
+exports.updateProject = require("./tracker/update-project")
 exports.getAddress = require("./get-address")
-exports.sendCoin = require("./simple-coin/send-coin")

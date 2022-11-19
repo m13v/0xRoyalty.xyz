@@ -3,13 +3,14 @@ pragma solidity ^0.8.0;
 contract Tracker {
 
     struct Project {
-        uint16 id;
+        uint id;
         string name;
         string repoLink;
-        bytes cid; //CID with revenue/fees/list of contributors and contributions
+        bytes cid; //CID with revenue/fees/list of contributors, contributions etc.
     }
 
-    mapping(uint16 => Project) public projects;
+    mapping(uint => Project) public projects;
+    uint projectsCount;
 
     address payable public owner;
 
@@ -17,17 +18,29 @@ contract Tracker {
         owner = payable(msg.sender);
     }
 
-    function update(uint16 id, string name, string repoLink, bytes cid) public {
+    function add(string calldata name, string calldata repoLink, bytes calldata cid) public returns (uint) {
         //require(msg.sender == owner, "only owner could update"); TODO should be validated, but disabled for test and demonstration
+        projectsCount++;
         Project memory project;
-        project.id = id;
+        project.id = projectsCount;
         project.name = name;
         project.repoLink = repoLink;
         project.cid = cid;
-        projects[id].push(project);
+        projects[projectsCount] = project;
+        return projectsCount;
     }
 
-    function allProjects() public view returns (mapping(uint16 => Project)) {
-        return projects;
+    function updateCid(uint16 id, bytes calldata cid) public {
+        //require(msg.sender == owner, "only owner could update"); TODO should be validated, but disabled for test and demonstration
+        Project storage project = projects[id];
+        project.cid = cid;
+    }
+
+    function allProjects() public view returns (Project[] memory) {
+        Project[] memory result = new Project[](projectsCount);
+        for (uint i = 0; i < projectsCount; i++) {
+            result[i] = projects[i];
+        }
+        return result;
     }
 }
