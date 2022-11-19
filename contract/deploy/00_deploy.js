@@ -46,6 +46,13 @@ module.exports = async ({ deployments }) => {
   console.log("Wallet Ethereum Address:", deployer.address);
   console.log("Wallet f4Address: ", f4Address)
 
+  await deploy("Tracker", {
+    from: deployer.address,
+    args: [],
+    maxPriorityFeePerGas: priorityFee,
+    log: true,
+  });
+
 
   await deploy("SimpleCoin", {
     from: deployer.address,
