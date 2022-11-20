@@ -6,6 +6,12 @@ import os
 import w3storage
 import requests
 import logging
+from dotenv import load_dotenv
+import os
+
+load_dotenv() 
+TOKEN = os.environ.get("token")
+
 
 class Tracker:
     def __init__(self, contract_address, account_from, storage_api_key, abi) -> None:
@@ -27,18 +33,27 @@ class Tracker:
         eth = self.web3.eth
         nonce = eth.get_transaction_count(self.account_from['address'])
 
+        priorityFee = int(self.call_rpc("eth_maxPriorityFeePerGas"), base=16)
+        
         gas_estimate = self.contract.functions.add(name, repolink, cid).estimate_gas()
         print(f'Gas estimate to transact with setVar: {gas_estimate}')
-
-        send_tx = self.contract.functions.add(name, repolink, cid).build_transaction(
-            {
-                'from': self.account_from['address'],
-                'nonce': nonce
-            }
-        )
-        tx_create = eth.account.sign_transaction(send_tx, self.account_from['private_key'])
-        tx_hash = eth.send_raw_transaction(tx_create.rawTransaction)
-        tx_receipt = eth.wait_for_transaction_receipt(tx_hash, timeout=400)
+        while True:
+            try:
+                send_tx = self.contract.functions.add(name, repolink, cid).build_transaction(
+                    {
+                        'from': self.account_from['address'],
+                        'nonce': nonce,
+                        #'gasLimit':  int(gas_estimate*5),
+                        #'maxPriorityFeePerGas': priorityFee
+                    }
+                 )
+                tx_create = eth.account.sign_transaction(send_tx, self.account_from['private_key'])
+                tx_hash = eth.send_raw_transaction(tx_create.rawTransaction)
+                tx_receipt = eth.wait_for_transaction_receipt(tx_hash, timeout=400)
+                break
+            except Exception as e:
+                print(e)
+            
         return tx_receipt.transactionHash.hex()
 
     def update_cid(self, id, cid):
@@ -68,7 +83,7 @@ class Tracker:
           })
         
         res = requests.post(url, data=data, headers=headers)
-        return res.json()
+        return res.json()['result']
     
 
 def get_repo_stat_page(repo, per_page, page):
@@ -77,7 +92,7 @@ def get_repo_stat_page(repo, per_page, page):
     payload={}
     headers = {
         'Accept': 'application/vnd.github+json',
-        'Authorization': 'Bearer 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'
+        'Authorization': f'Bearer {TOKEN}'
     }
     response = requests.request("GET", url, headers=headers, data=payload)
     return response.json()
@@ -87,7 +102,7 @@ def get_repos(organization):
     payload={}
     headers = {
     'Accept': 'application/vnd.github+json',
-    'Authorization': 'Bearer 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'
+    'Authorization': f'Bearer {TOKEN}'
     }
     response = requests.request("GET", url, headers=headers, data=payload)
     res = response.json()
@@ -109,10 +124,11 @@ def main():
             {'name': 'Bancor', 'github': 'https://github.com/bancorprotocol', 'volume': 6314867108.710405},
             #{'name': 'Shibaswap', 'github': 'https://github.com/sushiswap', 'volume': 5694971879.214641},
     ]
+    
     with open(r'0xRoyalty.xyz\parser\Tracker.json', 'r') as f:
         js = json.load(f) 
     abi = js['abi']
-    storage_api_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDVjMTQwRTc4Y2VFQmQ2Njk3NkUxMzk0MjdFNTYwMzc1ODJDYjhiN2IiLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2Njg4OTI3OTA4MTksIm5hbWUiOiIweFJveWFsdHkifQ.hYcfthHC-RBtHdDV28jdAksdiksfn370eRnZY5VHkak'
+    storage_api_key = TOKEN
     contract_address = '0xcED7B64Dc3F4ef7a2FdcF9A1937FA389E37dc639'
     account_from = {
         'private_key': 'b105269e30d819fbb298f41690cf84ef0814fb47fabe22d41613e3d95e985a63',
@@ -121,35 +137,7 @@ def main():
  
     tracker = Tracker(contract_address, account_from, storage_api_key, abi)
     tracker.connect()
-
-    #projects = tracker.get_projects()
-    #print(projects)
-    #exit()
-    #priorityFee = tracker.call_rpc("eth_maxPriorityFeePerGas")
-    #print(priorityFee)
-    #exit()
-    
-#    tx = tracker.add_project("Uniswap", 'https://github.com/Uniswap', bytes('123', 'utf-8'))
-#    print(tx)
-    
-
-
-    """
-        for org in orgs:
-            repos = [{'slug': rep} for rep in get_repos(org['github'][19:])]
-
-            print(repos)
-
-            for repo in repos:
-                res = get_repo_stat_page(repos[0]['slug'], 100, 1)
-                repo['stat'] = res
-            
-            org['repos'] = repos
-
-        with open('repostat.json', 'w') as f:
-            json.dump(orgs, f, indent=4, ensure_ascii=False)
-
-    """ 
+     
     with open(r'0xRoyalty.xyz\parser\repostat.json', 'r', encoding='utf-8') as f:
         orgs = json.load(f)
     
@@ -170,21 +158,9 @@ def main():
     
     projects = tracker.get_projects()
     print(projects)
-
+    
 
 
 if __name__ == "__main__":
     main()
     
-"""
- const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
-
-
-
-    const simpleCoinContract = new ethers.Contract(contractAddr, SimpleCoin.interface, signer)
-    console.log("Sending:", amount, "SimpleCoin to", toAccount)
-    await simpleCoinContract.sendCoin(toAccount, amount, {
-        gasLimit: 1000000000,
-        maxPriorityFeePerGas: priorityFee
-    })
-"""
