@@ -45,8 +45,8 @@ for org in orgs:
 dict(sorted(global_users.items(), key=lambda item: item[1], reverse=True))
 print(global_users)
 
-for (login, value) in global_users.items():
-    global_users['login'] = round(value)
+#for login, value in global_users.items():
+#    global_users['login'] = round(value)
 
 with open('leaderboard.json', 'w') as f:
     json.dump(global_users, f, ensure_ascii=False, indent=4)
