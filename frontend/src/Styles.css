@@ -1,0 +1,13 @@
+body {
+  font-family: Roboto;
+}
+
+.MuiDataGrid-columnHeader {
+  color: white;
+  background-color: dimgray;
+}
+.MuiDataGrid-columnHeaderTitle{
+  white-space: normal !important;
+  line-height: 1;
+  
+}
