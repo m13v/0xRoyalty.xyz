@@ -11,7 +11,7 @@ task("get-all", "Calls the tracker Contract to read all projects data.")
     const signer = accounts[0]
 
     const trackerContract = new ethers.Contract(contractAddr, Tracker.interface, signer)
-    let result = BigInt(await trackerContract.allProjects()).toString()
+    let result = (await trackerContract.allProjects()).toString()
     console.log("Data is: ", result)
   })
 
