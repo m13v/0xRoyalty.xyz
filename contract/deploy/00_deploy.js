@@ -18,7 +18,6 @@ async function callRpc(method, params) {
   var options = {
     method: "POST",
     url: "https://wallaby.node.glif.io/rpc/v0",
-    // url: "http://localhost:1234/rpc/v0",
     headers: {
       "Content-Type": "application/json",
     },
@@ -48,33 +47,11 @@ module.exports = async ({ deployments }) => {
 
   await deploy("Tracker", {
     from: deployer.address,
-    args: [],
-    maxPriorityFeePerGas: priorityFee,
-    log: true,
-  });
-
-  await deploy("MinerAPI", {
-    from: deployer.address,
-    args: [0x0000001],
-    // since it's difficult to estimate the gas before f4 address is launched, it's safer to manually set
-    // a large gasLimit. This should be addressed in the following releases.
-    // since Ethereum's legacy transaction format is not supported on FVM, we need to specify
-    // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
-    maxPriorityFeePerGas: priorityFee,
-    log: true,
-  });
-
-  await deploy("MarketAPI", {
-    from: deployer.address,
-    args: [],
-    // since it's difficult to estimate the gas before f4 address is launched, it's safer to manually set
-    // a large gasLimit. This should be addressed in the following releases.
-    // since Ethereum's legacy transaction format is not supported on FVM, we need to specify
-    // maxPriorityFeePerGas to instruct hardhat to use EIP-1559 tx format
+    args: [`0xA40D00a70E0e14bE292a146F82C3cC4C940733F1`],
     maxPriorityFeePerGas: priorityFee,
     log: true,
   });
 };
 
 
-module.exports.tags = ["SimpleCoin", "MinerAPI", "MarketAPI"];
+module.exports.tags = ["Tracker"];
